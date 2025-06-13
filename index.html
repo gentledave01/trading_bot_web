@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Trading Bot Control Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            color: #333;
+        }
+        button {
+            font-size: 20px;
+            padding: 15px 30px;
+            margin: 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #startBtn {
+            background-color: #4CAF50; /* Green */
+            color: white;
+        }
+        #startBtn:hover {
+            background-color: #45a049;
+        }
+        #stopBtn {
+            background-color: #f44336; /* Red */
+            color: white;
+        }
+        #stopBtn:hover {
+            background-color: #da190b;
+        }
+        #status {
+            font-size: 1.2em;
+            margin-top: 30px;
+            padding: 10px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        #status.running {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        #status.stopped {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <h1>Trading Bot Control Panel</h1>
+    <button id="startBtn">Start Bot</button>
+    <button id="stopBtn">Stop Bot</button>
+    <div id="status" class="stopped">Status: Stopped</div>
+
+    <script>
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const statusDiv = document.getElementById('status');
+
+        function updateStatus(text, state) {
+            statusDiv.innerText = "Status: " + text;
+            statusDiv.className = state;
+        }
+
+        startBtn.onclick = () => {
+            fetch('/start', {method: 'POST'})
+                .then(res => res.json())
+                .then(data => {
+                    if(data.status === "Bot started") {
+                        updateStatus("Running", "running");
+                    } else {
+                        alert(data.status);
+                    }
+                });
+        };
+
+        stopBtn.onclick = () => {
+            fetch('/stop', {method: 'POST'})
+                .then(res => res.json())
+                .then(data => {
+                    if(data.status === "Stopping bot") {
+                        updateStatus("Stopped", "stopped");
+                    } else {
+                        alert(data.status);
+                    }
+                });
+        };
+
+        // Optional: Poll server to update status periodically
+        function pollStatus() {
+            fetch('/status')
+                .then(res => res.json())
+                .then(data => {
+                    if(data.running) {
+                        updateStatus("Running", "running");
+                    } else {
+                        updateStatus("Stopped", "stopped");
+                    }
+                });
+        }
+
+        // Poll every 5 seconds
+        setInterval(pollStatus, 5000);
+
+        // Initialize status on page load
+        window.onload = () => {
+            pollStatus();
+        };
+    </script>
+</body>
+</html>
